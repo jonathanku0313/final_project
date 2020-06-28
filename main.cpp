@@ -405,21 +405,20 @@ void xbee_rx_interrupt(void)
 
 void xbee_rx(void)
 {
-  static int i = 0;
-  static char buf[100] = {0};
+  char buf[100] = {0};
+  char outbuf[100] = {0};
   while(xbee.readable()){
-    char c = xbee.getc();
-    if(c!='\r' && c!='\n'){
-      buf[i] = c;
-      i++;
-      buf[i] = '\0';
-    }else{
-      i = 0;
-      pc.printf("Get: %s\r\n", buf);
-      xbee.printf("%s", buf);
+    for (int i=0; ; i++) {
+      char recv = xbee.getc();
+      if (recv == '\r') {
+        break;
+      }
+      buf[i] = pc.putc(recv);
     }
+    RPC::call(buf, outbuf);
+    pc.printf("%s\r\n", outbuf);
+    wait(0.1);
   }
-  wait(0.1);
   xbee.attach(xbee_rx_interrupt, Serial::RxIrq); // reattach interrupt
 }
 
