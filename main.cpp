@@ -12,7 +12,7 @@ PwmOut servor(D8);
 DigitalIn encoder(D3);
 Ticker encoder_ticker;
 volatile int steps;
-int dick = 0;
+//int dick = 0;
 volatile int last;
 //encoder end
 
@@ -26,6 +26,8 @@ Serial pc(USBTX, USBRX);
 
 EventQueue queue(32 * EVENTS_EVENT_SIZE);
 Thread t;
+int i = 0;
+float ping_mission2[10];
 
 void servo_control_LEFT(int speed){
     if (speed > 200)       speed = 200;
@@ -44,7 +46,7 @@ void encoder_control(){
 
     if(!last && value){
         steps++;
-        dick++;
+        //dick++;
         }
     last = value;
 }
@@ -57,6 +59,7 @@ void xbee_rx_interrupt(void);
 void xbee_rx(void);
 void reply_messange(char *xbee_reply, char *messange);
 void check_addr(char *xbee_reply, char *messenger);
+void mission2(void);
 
 int main() {
     pc.baud(9600);
@@ -73,10 +76,10 @@ int main() {
     last = 0;
 
     while(1) {
-        if(dick < 215){                       //go forward to start mission1       
+        if(steps < 215){                       //go forward to start mission1       
             servo_control_LEFT(93);
-            servo_control_RIGHT(-87);            
-        }else if(dick >= 215 && dick < 228){  //turn left
+            servo_control_RIGHT(-90);            
+        }else if(steps >= 215 && steps < 228){  //turn left
             if(stop == 0){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
@@ -84,15 +87,15 @@ int main() {
             } 
             servo_control_LEFT(-70);
             servo_control_RIGHT(-70);             
-        }else if(dick >= 228 && dick <321){   //go forward to mission 1
+        }else if(steps >= 228 && steps <321){   //go forward to mission 1
             if(stop == 1){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
               stop = 0;
             } 
             servo_control_LEFT(93);
-            servo_control_RIGHT(-87);            
-        }else if(dick >= 321 && dick < 336){  //turn right
+            servo_control_RIGHT(-90);            
+        }else if(steps >= 321 && steps < 336){  //turn right
             if(stop == 0){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
@@ -100,7 +103,7 @@ int main() {
             } 
             servo_control_LEFT(70);
             servo_control_RIGHT(70);             
-        }else if(dick >= 336 && dick < 399){  //go backward
+        }else if(steps >= 336 && steps < 399){  //go backward
             if(stop == 1){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
@@ -108,16 +111,16 @@ int main() {
               stop = 0;
             }
             servo_control_LEFT(-93);
-            servo_control_RIGHT(87);            
-        }else if(dick >= 399 && dick < 425){  //go forward
+            servo_control_RIGHT(90);            
+        }else if(steps >= 399 && steps < 430){  //go forward
             if(stop == 0){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
               stop = 1;
             } 
             servo_control_LEFT(93);
-            servo_control_RIGHT(-87);      
-        }else if(dick >= 425 && dick < 438){  //turn left
+            servo_control_RIGHT(-90);      
+        }else if(steps >= 430 && steps < 443){  //turn left
             if(stop == 1){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
@@ -125,15 +128,15 @@ int main() {
             } 
             servo_control_LEFT(-70);
             servo_control_RIGHT(-70);             
-        }else if(dick >= 438 && dick < 469){  //go forward
+        }else if(steps >= 443 && steps < 474){  //go forward
             if(stop == 0){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
               stop = 1;
             } 
             servo_control_LEFT(93);
-            servo_control_RIGHT(-87);             
-        }else if(dick >= 469 && dick < 483){  //turn right and take a picture
+            servo_control_RIGHT(-90);             
+        }else if(steps >= 474 && steps < 488){  //turn right and take a picture
             if(stop == 1){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
@@ -141,20 +144,16 @@ int main() {
             }
             servo_control_LEFT(70);
             servo_control_RIGHT(70);
-        }else if(dick >= 483 && dick < 511){  //go forward
+        }else if(steps >= 488 && steps < 511){  //go forward
             if(stop == 0){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
               wait(6);
               stop = 1;
             } 
-            if(uart.readable()){
-                char recv = uart.getc();
-                xbee.putc(recv);
-            }
             servo_control_LEFT(93);
-            servo_control_RIGHT(-87);                          
-        }else if(dick >= 511 && dick < 524){  //turn right
+            servo_control_RIGHT(-90);                          
+        }else if(steps >= 511 && steps < 524){  //turn right
             if(stop == 0){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
@@ -162,15 +161,15 @@ int main() {
             }
             servo_control_LEFT(70);
             servo_control_RIGHT(70);             
-        }else if(dick >= 524 && dick < 628){  //go forward to leave mission1
+        }else if(steps >= 524 && steps < 628){  //go forward to leave mission1
             if(stop == 1){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
               stop = 0;
             }
             servo_control_LEFT(93);
-            servo_control_RIGHT(-87);           
-        }else if(dick >= 628 && dick < 641){  //turn right
+            servo_control_RIGHT(-90);           
+        }else if(steps >= 628 && steps < 641){  //turn right
             if(stop == 0){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
@@ -178,7 +177,7 @@ int main() {
             }
             servo_control_LEFT(70);
             servo_control_RIGHT(70);             
-        }else if(dick >= 641 && dick < 835){  //go forward to start mission2
+        }else if(steps >= 641 && steps < 835){  //go forward to start mission2
             if(stop == 1){
                 servo_control_LEFT(0);
                 servo_control_RIGHT(0);
@@ -186,8 +185,8 @@ int main() {
                 stop = 0;
             }
             servo_control_LEFT(93);
-            servo_control_RIGHT(-87);             
-        }else if(dick >= 835 && dick < 850){  //turn right
+            servo_control_RIGHT(-90);             
+        }else if(steps >= 835 && steps < 848){  //turn right
             if(stop == 0){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
@@ -195,15 +194,15 @@ int main() {
             }
             servo_control_LEFT(70);
             servo_control_RIGHT(70);            
-        }else if(dick >= 850 && dick < 925){  //go forward to miossion2
+        }else if(steps >= 848 && steps < 923){  //go forward to miossion2
             if(stop == 1){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
               stop = 0;
             }
             servo_control_LEFT(93);
-            servo_control_RIGHT(-87);           
-        }else if(dick >= 925 && dick < 937){  //turn right
+            servo_control_RIGHT(-90);           
+        }else if(steps >= 923 && steps < 935){  //turn right
             if(stop == 0){
               servo_control_LEFT(0);
               servo_control_RIGHT(0);
@@ -211,7 +210,7 @@ int main() {
             }
             servo_control_LEFT(70);
             servo_control_RIGHT(70);   
-        }else if(dick >= 937 && dick < 979){  //go forward
+        }else if(steps >= 935 && steps < 977){  //go forward
             if(stop == 1){
                 servo_control_LEFT(0);
                 servo_control_RIGHT(0);
@@ -219,8 +218,8 @@ int main() {
                 stop = 0;
             }
             servo_control_LEFT(93);
-            servo_control_RIGHT(-87);           
-        }else if(dick >= 979 && dick < 984){  //turn right scan
+            servo_control_RIGHT(-90);           
+        }else if(steps >= 977 && steps < 982){  //turn right scan
             if(stop == 0){
                 servo_control_LEFT(0);
                 servo_control_RIGHT(0);
@@ -229,7 +228,7 @@ int main() {
             }
             servo_control_LEFT(70);
             servo_control_RIGHT(70);
-        }else if(dick >= 984 && dick < 990){  //turn left scan
+        }else if(steps >= 982 && steps < 989){  //turn left scan
             if(stop == 1){
                 servo_control_LEFT(0);
                 servo_control_RIGHT(0);
@@ -237,16 +236,16 @@ int main() {
                 stop = 0;
             }
             servo_control_LEFT(-70);
-            servo_control_RIGHT(-70);   
-        }else if(dick >= 990 && dick < 1022){ //go backward
+            servo_control_RIGHT(-70);  
+        }else if(steps >= 989 && steps < 1022){ //go backward
             if(stop == 0){
                 servo_control_LEFT(0);
                 servo_control_RIGHT(0);
                 stop = 1;
             }
             servo_control_LEFT(-93);
-            servo_control_RIGHT(87);            
-        }else if(dick >= 1022 && dick < 1037){ //turn left 
+            servo_control_RIGHT(90);            
+        }else if(steps >= 1022 && steps < 1037){ //turn left 
             if(stop == 1){
                 servo_control_LEFT(0);
                 servo_control_RIGHT(0);
@@ -255,7 +254,7 @@ int main() {
             }
             servo_control_LEFT(-70);
             servo_control_RIGHT(-70);   
-        }else if(dick >= 1037 && dick < 1125){ //go forward to leave mission2
+        }else if(steps >= 1037 && steps < 1125){ //go forward to leave mission2
             if(stop == 0){
                 servo_control_LEFT(0);
                 servo_control_RIGHT(0);
@@ -263,8 +262,8 @@ int main() {
                 stop = 1;
             }
             servo_control_LEFT(93);
-            servo_control_RIGHT(-87);           
-        }else if(dick >= 1125 && dick < 1140){ //turn right
+            servo_control_RIGHT(-90);           
+        }else if(steps >= 1125 && steps < 1140){ //turn right
             if(stop == 1){
                 servo_control_LEFT(0);
                 servo_control_RIGHT(0);
@@ -272,73 +271,88 @@ int main() {
             }
             servo_control_LEFT(70);
             servo_control_RIGHT(70);   
-        }else if(dick >= 1140 && dick < 1400){  //go forward to finish 
+        }else if(steps >= 1140 && steps < 1400){  //go forward to finish 
             if(stop == 0){
                 servo_control_LEFT(0);
                 servo_control_RIGHT(0);
                 stop = 1;
             }
             servo_control_LEFT(93);
-            servo_control_RIGHT(-87);             
+            servo_control_RIGHT(-90);             
         }else{
             servo_control_LEFT(0);
             servo_control_RIGHT(0);
         }
+/*
+        if(steps >= 979 && steps < 990){  //turn right scan, turn left scan
+            mission2();
+        }*/
 
         wait(0.01);
     }
 }
 
 void getLog(Arguments *in, Reply *out){
-    if(dick < 215){                         
+    if(steps < 215){                         
         xbee.printf("go forward to start mission1\r\n");          
-    }else if(dick >= 215 && dick < 228){  
+    }else if(steps >= 215 && steps < 228){  
         xbee.printf("turn left\r\n");     
-    }else if(dick >= 228 && dick <321){   
+    }else if(steps >= 228 && steps <321){   
         xbee.printf("go forward to mission1\r\n");    
-    }else if(dick >= 321 && dick < 336){  
+    }else if(steps >= 321 && steps < 336){  
         xbee.printf("turn right\r\n");         
-    }else if(dick >= 336 && dick < 399){  
+    }else if(steps >= 336 && steps < 399){  
         xbee.printf("go backward\r\n");    
-    }else if(dick >= 399 && dick < 425){  
+    }else if(steps >= 399 && steps < 425){  
         xbee.printf("go forward\r\n");  
-    }else if(dick >= 425 && dick < 438){  
+    }else if(steps >= 425 && steps < 438){  
         xbee.printf("turn left\r\n");    
-    }else if(dick >= 438 && dick < 469){  
+    }else if(steps >= 438 && steps < 469){  
         xbee.printf("go forward\r\n");    
-    }else if(dick >= 469 && dick < 483){  
+    }else if(steps >= 469 && steps < 484){  
         xbee.printf("turn right and take a picture\r\n");
-    }else if(dick >= 483 && dick < 511){  
-        xbee.printf("go forward\r\n");                 
-    }else if(dick >= 511 && dick < 524){ 
+        while(uart.readable()){
+            char recv = uart.getc();
+            xbee.putc(recv);
+        }
+    }else if(steps >= 484 && steps < 511){  
+        xbee.printf("go forward\r\n"); 
+        while(uart.readable()){
+            char recv = uart.getc();
+            xbee.putc(recv);
+        }                
+    }else if(steps >= 511 && steps < 524){ 
         xbee.printf("turn right\r\n");    
-    }else if(dick >= 524 && dick < 628){ 
+    }else if(steps >= 524 && steps < 628){ 
         xbee.printf("go forward to leave mission1\r\n");      
-    }else if(dick >= 628 && dick < 641){ 
+    }else if(steps >= 628 && steps < 641){ 
         xbee.printf("turn right\r\n");         
-    }else if(dick >= 641 && dick < 835){  
+    }else if(steps >= 641 && steps < 835){  
         xbee.printf("go forward to start mission2\r\n");    
-    }else if(dick >= 835 && dick < 850){  
+    }else if(steps >= 835 && steps < 850){  
         xbee.printf("turn right\r\n");      
-    }else if(dick >= 850 && dick < 925){  
+    }else if(steps >= 850 && steps < 925){  
         xbee.printf("go forward to mission2\r\n");  
-    }else if(dick >= 925 && dick < 937){  
+    }else if(steps >= 925 && steps < 937){  
         xbee.printf("turn right\r\n");
-    }else if(dick >= 937 && dick < 979){  
+    }else if(steps >= 937 && steps < 979){  
         xbee.printf("go forward\r\n");   
-    }else if(dick >= 979 && dick < 984){  
+    }else if(steps >= 979 && steps < 980){  
         xbee.printf("turn right scan\r\n");
-    }else if(dick >= 984 && dick < 990){  
+        xbee.printf("%f\r\n", (float) ping);
+    }else if(steps >= 980 && steps < 986){  
         xbee.printf("turn left scan\r\n");
-    }else if(dick >= 990 && dick < 1022){ 
+        xbee.printf("%f\r\n", (float) ping);
+    }else if(steps >= 986 && steps < 1018){
+        xbee.printf("Equal Lateral Triangle!!\r\n"); 
         xbee.printf("go backward\r\n");    
-    }else if(dick >= 1022 && dick < 1037){  
+    }else if(steps >= 1018 && steps < 1037){  
         xbee.printf("turn left\r\n");
-    }else if(dick >= 1037 && dick < 1125){ 
+    }else if(steps >= 1037 && steps < 1125){ 
         xbee.printf("go forward to leave mission2\r\n");
-    }else if(dick >= 1125 && dick < 1140){ 
+    }else if(steps >= 1125 && steps < 1140){ 
         xbee.printf("turn right\r\n");
-    }else if(dick >= 1140 && dick < 1400){   
+    }else if(steps >= 1140 && steps < 1400){   
         xbee.printf("go forward to finish\r\n");   
     }else{
         xbee.printf("no action\r\n");
@@ -346,12 +360,20 @@ void getLog(Arguments *in, Reply *out){
 }
 
 void mission2(){
-  xbee.printf("%f\r\n", (float) ping);
-  /*
-
-  ...
-
-  */
+    ping_mission2[i] = float(ping);
+    i++;
+    if(steps == 990){
+  //xbee.printf("%f\r\n", (float) ping);
+        if(ping_mission2[0] > ping_mission2[5] && ping_mission2[6] < ping_mission2[10]) { //triangle
+            xbee.printf("Equal Lateral Triangle!!\r\n");
+        }else if(ping_mission2[0] == ping_mission2[5] && ping_mission2[5] == ping_mission2[6] && ping_mission2[6] == ping_mission2[10]) { //rectangle
+            xbee.printf("Square!!\r\n");
+        }else if(ping_mission2[0] > ping_mission2[5] && ping_mission2[5] > ping_mission2[6] && ping_mission2[6] > ping_mission2[10]) { //right triangle
+            xbee.printf("Right Triangle!!\r\n");
+        }else {
+            xbee.printf("Seesaw!!\r\n");
+        }
+    }
 }
 
 void xbee_setting(){
